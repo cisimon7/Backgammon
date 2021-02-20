@@ -30,6 +30,7 @@ library
       Components
     , Pictures
     , BackgammonGame
+    , SideFun
   other-modules:
       Paths_Backgammon
   hs-source-dirs:

@@ -4,8 +4,7 @@ module Components where
 data Game = Game { board  :: Board
                  , player :: Player
                  , state  :: State
-                 }
---                 deriving (Eq, Show)
+                 } deriving (Eq, Show)
 
 data Player = PlayerRed | PlayerWhite
   deriving (Eq, Show)
@@ -13,28 +12,29 @@ data Player = PlayerRed | PlayerWhite
 data State  = Running | GameOver (Maybe Player)
   deriving (Eq, Show)
 
-type Board = (Bar, [[Quad]])
+type Board = (Bar, [Quad])
 
-type Quad = [Point_]
+type Quad = [Track]
 
-type Bar = Maybe [Checker]
+type Bar = Maybe [Pawn]
 
-type Point_ = Maybe [Checker]
+type Track = Maybe [Pawn]
 
-data Checker = CheckerRed { pt::Float } | CheckerWhite { pt::Float } 
+data Pawn = PawnRed { pt::Int } | PawnWhite { pt::Int }
   deriving (Eq, Show)
 
+-- Game Window Dimensions
 screenWidth, screenHeight :: Int
 screenWidth  = 1000
 screenHeight = 700
 
 -- Checker Radius
-chkRad :: Float
-chkRad = 35
+pawnRadius :: Float
+pawnRadius = 35
 
 -- Point Dimensions
 pWidth, pHeight :: Float
-pWidth = 2*chkRad
+pWidth = 2*pawnRadius
 pHeight = fromIntegral screenHeight*0.85*0.5
 
 -- Quad Dimensions
@@ -44,6 +44,6 @@ qHeight = fromIntegral screenHeight*0.5
 
 -- Bar Dimensions
 bWidth, bHeight :: Float
-bWidth = chkRad
+bWidth = pawnRadius
 bHeight = fromIntegral screenHeight
 
