@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: gloss-1.13.2.1@sha256:273d02d30e1896932d45424dab6022a16986c0ed3eef6937776b5f40854ce51c,4075
+    pantry-tree:
+      size: 3807
+      sha256: 1bcac9962bad9412bfb3c3a694fcdaae7097ee4071b03fc1dc5ab6047baad01b
+  original:
+    hackage: gloss-1.13.2.1
 snapshots:
 - completed:
     size: 563103
