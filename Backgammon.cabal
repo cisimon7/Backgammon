@@ -31,6 +31,7 @@ library
     , Pictures
     , BackgammonGame
     , SideFun
+    , Effects
   other-modules:
       Paths_Backgammon
   hs-source-dirs:

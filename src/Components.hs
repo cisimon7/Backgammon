@@ -20,7 +20,8 @@ type Bar = Maybe [Pawn]
 
 type Track = Maybe [Pawn]
 
-data Pawn = PawnRed { pt::Int } | PawnWhite { pt::Int }
+data Pawn =    PawnRed { pt::Int, isFocused::Bool } 
+           | PawnWhite { pt::Int, isFocused::Bool }
   deriving (Eq, Show)
 
 -- Game Window Dimensions
