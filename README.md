@@ -20,12 +20,12 @@ Implementation of the Backgammon game as a semester project for the elective cou
 <ol>
     <li>Basic UI added</li>
     <li>Improving the UI and making it interactive</li>
+    <li>Drag and Drop Checker</li>
+    <li>Adding Rules of the Game</li>
 </ol>
 
 <li>Currently Working on</li>
 <ol>
-    <li>Drag and Drop Checker</li>
-    <li>Adding Rules of the Game</li>
-    <li>Finalising the UI to go well with the game</li>
+    <li>Finalising the UI and Game Rules</li>
 </ol>
 </ul>
