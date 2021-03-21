@@ -1,10 +1,13 @@
 module Pictures where
 
+import Rules
 import SideFun
+import Data.List
+import UIElements
 import Components
 import Debug.Trace
+import BackgammonGame
 import Graphics.Gloss
-import Data.List
 
 s :: Float
 s = 0.85
@@ -14,13 +17,13 @@ drawPawn pawn = case pawn of
   (PawnRed _ focus)   -> redPawn focus
   (PawnWhite _ focus) -> whitePawn focus
 
-  where redPawn   focus = translate pawnRadius (size*pawnRadius) $ scale size size $ pawnShape black pawnRadius focus
+  where redPawn   focus = translate pawnRadius (size*pawnRadius) $ scale size size $ pawnShape redChipColor pawnRadius focus
             where size = s * focusSize focus
-        whitePawn focus = translate pawnRadius (size*pawnRadius) $ scale size size $ pawnShape white pawnRadius focus
+        whitePawn focus = translate pawnRadius (size*pawnRadius) $ scale size size $ pawnShape whiteChipColor pawnRadius focus
             where size = s * focusSize focus
 
         pawnShape color_ rad focus
-          | focus     = color green (circleSolid (rad+5)) <> color color_ (circleSolid rad) :: Picture
+          | focus     = color focusColor (circleSolid (rad+5)) <> color color_ (circleSolid rad) :: Picture
           | otherwise = color color_ (circleSolid rad) :: Picture
 
         focusSize :: Bool -> Float
@@ -29,12 +32,12 @@ drawPawn pawn = case pawn of
           | otherwise = 1.0
 
 
-drawTrack :: Track -> Picture
-drawTrack points = case points of
+drawTrack :: Track -> Color -> Picture
+drawTrack points trackColor = case points of
   Nothing      -> trackShape
   (Just pawns) -> trackShape <> pictures (map translatePawn (sortBy sortGT pawns))
 
-  where trackShape = color blue $ polygon [(0,0),(pWidth,0),(pWidth*0.5,pHeight)]
+  where trackShape = color trackColor $ polygon [(0,0),(pWidth,0),(pWidth*0.5,pHeight)]
 
         translatePawn :: Pawn -> Picture
         translatePawn pawn = translate 0 (pos*2*pawnRadius*s) $ drawPawn pawn
@@ -46,31 +49,38 @@ drawTrack points = case points of
           | otherwise = compare (pt pawn1) (pt pawn2)
 
 
-drawBar :: Picture
-drawBar = color black $ rectangleSolid bWidth bHeight
-
-
-organiseTrack :: Track -> Track
-organiseTrack track = case track of
-  Nothing -> Nothing
-  Just pawns -> Just [ pawn { pt=i } | (pawn, i) <- zip pawns [0..(length pawns - 1)] ]
+drawBar :: Bar -> Picture
+drawBar bar = case ordBar of 
+    Nothing -> blank
+    (Just pawns) -> pictures 
+                    $ map (\chip -> scale 0.5 0.5 
+                                    $ translate (-0.5*bWidth) (2*pawnRadius*fromIntegral 
+                                    (pt chip))
+                                    (drawPawn chip)) 
+                          pawns 
+    
+    where 
+      ordBar = organiseTrack bar
 
 
 drawQuad :: [Track] -> Picture
 drawQuad points
   = translate (-0.5*bWidth - qWidth) (-qHeight)
-  $ translate (qWidth*0.5) (qHeight*0.5) (color red (rectangleSolid qWidth qHeight))
+  $ translate (qWidth*0.5) (qHeight*0.5) (color quadColor (rectangleSolid qWidth qHeight))
   <> pictures (zipWith drawTractAt points [ 5-i | i <- [0..(-1+length points)]])
 
 
   where drawTractAt :: Track -> Int -> Picture
-        drawTractAt point i = translate (fromIntegral i*pWidth) 0 $ drawTrack point
+        drawTractAt point i = translate (fromIntegral i*pWidth) 0 $ drawTrack point trackColor
+          where trackColor = if even i then evenTrackColor else oddTrackColor
 
 
-drawBoard :: Board -> Picture
-drawBoard (_, quads) = pictures boardFrame
+drawBoard :: Game -> Picture
+drawBoard (Game oldBoard _ _) = pictures boardFrame
 
-  where boardFrame = drawBar : allQuads
+  where (bar, quads) = setPt oldBoard
+
+        boardFrame = drawBar bar : allQuads
         allQuads = zipWith translateQuad [ q1, q2, q3, q4 ]
                                          [ (qWidth+bWidth,0), (0,0), (0, qHeight), (qWidth+bWidth, qHeight) ]
 
@@ -103,30 +113,6 @@ pickPlacePawn (bar, oldBoard) (from, to) chip = case oldBoard !! x !! y of
         {- Gets the from and to quad index, track index and chip height -}
         ((x, y), (i, j), k) = (getTrackId from, getTrackId to, pt chip)
 
-        {- returns a tuple of quad position and track position -}
-        getTrackId :: Int -> (Int, Int)
-        getTrackId z = (floor (fromIntegral z /6), mod z 6)
-
-        {- Removes a pawn at a specific index -}
-        removePawn :: Int -> Track -> Track
-        removePawn idx track = case track of
-          Nothing -> Nothing
-          (Just pawns)
-            | null newPawns -> Nothing
-            | otherwise     -> organiseTrack $ Just newPawns
-            where newPawns = removeAt idx pawns
-
-        {- Adds a pawn at a given pt -}
-        addPawn :: Int -> Pawn -> Track -> Track
-        addPawn _ pawn track = case track of
-          Nothing -> Just [pawn { pt=0 }]
-          Just _  -> newTrack
-            where 
-                l = length track
-                newTrack = case organiseTrack track of
-                    Nothing -> Nothing
-                    (Just orderedPawns) -> Just (orderedPawns ++ [pawn { pt=l }])
-
 
 {-  
     TODOS
@@ -134,4 +120,6 @@ pickPlacePawn (bar, oldBoard) (from, to) chip = case oldBoard !! x !! y of
     * Change color to something more pleasing
     * Pick and Place Pawn
     * Add boundary to chips
+    * Casting of Die
+    * Show possible Moves from a cast of Die
 -}

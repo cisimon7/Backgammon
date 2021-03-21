@@ -3,12 +3,56 @@ module BackgammonGame where
 import Components
 
 backgammonGame :: Game
-backgammonGame = Game { board  = (Nothing, [ redOuter,   redHome
-                                           , whiteOuter, whiteHome ])
+backgammonGame = Game { board  = initBoard
                       , player = PlayerWhite
-                      , state  = Running }
+                      , state  = Running      }
                       
-  where redHome    = [ Nothing, Nothing, Nothing, Nothing, Nothing, Nothing ]
-        redOuter   = redHome
-        whiteHome  = redHome
-        whiteOuter = redHome
+  where initBoard = (Nothing, allQuads) :: Board
+
+        {- SETUP GAME -}
+        allQuads = [ q1, q2, q3, q4 ] :: [[Track]]
+
+        q1 = [ set1, n, n, n, n, set2 ]
+        q2 = [ n, set3, n, n, n, set4 ]
+        q3 = [ set5, n, n, n, set6, n ]
+        q4 = [ set7, n, n, n, n, set8 ]
+
+        n    = Nothing
+
+        set1 = Just [ PawnRed   0 False
+                    , PawnRed   1 False ]
+
+        set2 = Just [ PawnWhite 0 False
+                    , PawnWhite 1 False
+                    , PawnWhite 2 False
+                    , PawnWhite 3 False
+                    , PawnWhite 4 False ]
+
+        set3 = Just [ PawnWhite 0 False
+                    , PawnWhite 1 False
+                    , PawnWhite 2 False ]
+
+        set4 = Just [ PawnRed   0 False
+                    , PawnRed   1 False
+                    , PawnRed   2 False
+                    , PawnRed   3 False
+                    , PawnRed   4 False ]
+
+        set5 = Just [ PawnWhite 0 False
+                    , PawnWhite 1 False
+                    , PawnWhite 2 False
+                    , PawnWhite 3 False
+                    , PawnWhite 4 False ]
+
+        set6 = Just [ PawnRed   0 False
+                    , PawnRed   1 False
+                    , PawnRed   2 False ]
+
+        set7 = Just [ PawnRed   0 False
+                    , PawnRed   1 False
+                    , PawnRed   2 False
+                    , PawnRed   3 False
+                    , PawnRed   4 False ]
+
+        set8 = Just [ PawnRed   0 False
+                    , PawnRed   1 False ]

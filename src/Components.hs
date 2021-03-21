@@ -20,7 +20,7 @@ type Bar = Maybe [Pawn]
 
 type Track = Maybe [Pawn]
 
-data Pawn =    PawnRed { pt::Int, isFocused::Bool } 
+data Pawn =    PawnRed { pt::Int, isFocused::Bool }
            | PawnWhite { pt::Int, isFocused::Bool }
   deriving (Eq, Show)
 

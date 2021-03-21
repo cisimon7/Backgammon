@@ -2,10 +2,12 @@
 
 module Effects where
 
+import Rules
 import SideFun
 import Pictures
 import Components
 import Debug.Trace
+import BackgammonGame
 import Data.Foldable (find)
 import Data.Maybe (fromMaybe, isJust)
 import Graphics.Gloss.Interface.IO.Game
@@ -54,13 +56,41 @@ chipIdx pos = getIdx (quadIdx pos) (trackIdx pos) (yIdx pos)
           | otherwise           = Nothing
 
 
-transformGame :: Event -> Board -> Board
-transformGame (EventKey (MouseButton LeftButton) Up _ mousePos) oldBoard = case chipIdx mousePos of
-      Nothing -> oldBoard
+getFocusedChip :: [Quad] -> Maybe (Int, Pawn)
+getFocusedChip quads = getFocus $ zipWith combine (concatMap (map check) quads) allIdx
+  where
+      allIdx = [ tIdx_+(6*qIdx_)-1 | qIdx_ <- [0..3], tIdx_ <- [1..6] ]
+
+      combine :: Maybe Pawn -> Int -> Maybe (Int, Pawn)
+      combine Nothing _ = Nothing
+      combine (Just pawn) idx = Just (idx, pawn)
+
+getFocus :: [Maybe (Int, Pawn)] -> Maybe (Int, Pawn)
+getFocus list = do
+  let first = find isJust list
+  case first of
+    Nothing             -> Nothing
+    Just Nothing        -> Nothing
+    Just (Just content) -> Just content
+
+
+check :: Track -> Maybe Pawn
+check Nothing        = Nothing
+check (Just pawns)   = find isFocused pawns
+
+
+transformGame :: Event -> Game -> Game
+transformGame (EventKey (MouseButton LeftButton) Up _ mousePos) game = case chipIdx mousePos of
+      Nothing -> game
       Just (qIdx, tIdx, yIdx) -> do
-        let (bar, quads) = resetAllFocus oldBoard
-        let newQuads = updateAt qIdx (updateTrack tIdx) quads
-        (bar, newQuads)
+        let (Game oldBoard player_ gameState) = game
+        
+        case gameState of
+          (GameOver winner) -> game
+          Running           -> do
+              let (bar, quads) = resetAllFocus oldBoard
+              let newBoard = updateAt qIdx (updateTrack tIdx) quads
+              Game (bar, newBoard) player_ gameState
           where
               updateTrack :: Int -> Quad -> Quad
               updateTrack idx tracks = updateAt idx (updatePawn yIdx) tracks
@@ -70,50 +100,49 @@ transformGame (EventKey (MouseButton LeftButton) Up _ mousePos) oldBoard = case 
               updatePawn idx (Just pawns) = Just $ updateAt idx updateChip pawns
 
               updateChip :: Pawn -> Pawn
-              updateChip pawn = pawn { isFocused=True }
+              updateChip pawn = case (player game, pawn) of 
+                  (PlayerRed, PawnRed _ _)      -> pawn { isFocused=True }
+                  (PlayerWhite, PawnWhite _ _)  -> pawn { isFocused=True }
+                  (_, _)                        -> pawn
 
 
-transformGame (EventKey (MouseButton RightButton) Up _ mousePos) oldBoard = case chipIdx mousePos of
-      Nothing              -> oldBoard
+transformGame (EventKey (MouseButton RightButton) Up _ mousePos) game = case chipIdx mousePos of
+      Nothing              -> game
       Just (qIdx, tIdx, _) -> do
+        let (Game oldBoard player_ state_) = game
         let (_, quads) = oldBoard
 
         let focusedChip = getFocusedChip quads
         
         case focusedChip of
-          Nothing -> oldBoard
+          Nothing -> Game oldBoard player_ state_
           Just (fromIdx, fChip) -> do
             let toIdx = newIdx fChip
-            let newBoard = pickPlacePawn oldBoard (fromIdx, toIdx) fChip
-            resetAllFocus newBoard
-
+            
+            {-- Check movement board, fromIdx, toIdx, chip --}
+            let canMove = checkMove oldBoard fromIdx toIdx fChip
+            let (isBlot, bBoard) = checkBlot oldBoard toIdx fChip 
+            
+            case canMove of
+              False -> Game oldBoard player_ state_
+              _     -> do
+                case player_ of
+                   PlayerWhite -> Game (resetAllFocus newBoard) PlayerRed state_
+                   PlayerRed   -> Game (resetAllFocus newBoard) PlayerWhite state_
+               where 
+                 newBoard = if isBlot 
+                            then pickPlacePawn bBoard (fromIdx, toIdx) fChip 
+                            else pickPlacePawn oldBoard (fromIdx, toIdx) fChip
+            
+            
           where
-              getFocusedChip :: [Quad] -> Maybe (Int, Pawn)
-              getFocusedChip quads = getFocus $ zipWith combine (concatMap (map check) quads) allIdx
-                where
-                    allIdx = [ tIdx_+(6*qIdx_)-1 | qIdx_ <- [0..3], tIdx_ <- [1..6] ]
-
-                    combine :: Maybe Pawn -> Int -> Maybe (Int, Pawn)
-                    combine Nothing _ = Nothing
-                    combine (Just pawn) idx = Just (idx, pawn)
-
-              getFocus :: [Maybe (Int, Pawn)] -> Maybe (Int, Pawn)
-              getFocus list = do
-                let first = find isJust list
-                case first of
-                  Nothing             -> Nothing
-                  Just Nothing        -> Nothing
-                  Just (Just content) -> Just content
-
-
-              check :: Track -> Maybe Pawn
-              check Nothing        = Nothing
-              check (Just pawns)   = find isFocused pawns
-
               newIdx :: Pawn -> Int
               newIdx pawn = case pawn of
                  (PawnRed _ _)   -> tIdx + (6*qIdx)
                  (PawnWhite _ _) -> tIdx + (6*qIdx)
 
 
-transformGame _ boardState = boardState
+transformGame _ game = game
+
+
+

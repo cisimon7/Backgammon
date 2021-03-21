@@ -32,6 +32,8 @@ library
     , BackgammonGame
     , SideFun
     , Effects
+    , Rules
+    , UIElements
   other-modules:
       Paths_Backgammon
   hs-source-dirs:
