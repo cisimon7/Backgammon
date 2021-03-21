@@ -35,19 +35,19 @@ chipIdx pos = getIdx (quadIdx pos) (trackIdx pos) (yIdx pos)
 
         quadIdx :: (Float, Float) -> Maybe Int
         quadIdx (x,y)
-          | x>bWidth && x<(qWidth+bWidth) && y>0 && y<qHeight        = Just 3
-          | x<(-bWidth) && x>(-qWidth-bWidth) && y>0 && y<qHeight    = Just 2
-          | x<(-bWidth) && x>(-qWidth-bWidth) && y>(-qHeight) && y<0 = Just 1
-          | x>bWidth && x<(qWidth+bWidth) && y>(-qHeight) && y<0     = Just 0
+          | x>(bWidth/2) && x<(qWidth+(bWidth/2)) && y>0 && y<qHeight        = Just 3
+          | x<(-(bWidth/2)) && x>(-qWidth-(bWidth/2)) && y>0 && y<qHeight    = Just 2
+          | x<(-(bWidth/2)) && x>(-qWidth-(bWidth/2)) && y>(-qHeight) && y<0 = Just 1
+          | x>(bWidth/2) && x<(qWidth+(bWidth/2)) && y>(-qHeight) && y<0     = Just 0
           | otherwise = Nothing
 
         trackIdx :: (Float, Float) -> Maybe Int
         trackIdx (x,y)
-          | x>bWidth && x<(qWidth+bWidth) && y>0 && y<qHeight        = Just $ floor ((x-bWidth)/pWidth)
-          | x<(-bWidth) && x>(-qWidth-bWidth) && y>0 && y<qHeight    = Just $ 5 - floor (abs(x+bWidth)/pWidth)
-          | x<(-bWidth) && x>(-qWidth-bWidth) && y>(-qHeight) && y<0 = Just $ floor (abs(x+bWidth)/pWidth)
-          | x>bWidth && x<(qWidth+bWidth) && y>(-qHeight) && y<0     = Just $ 5 - floor ((x-bWidth)/pWidth)
-          | otherwise                                                = Nothing
+          | x>(bWidth/2) && x<(qWidth+(bWidth/2)) && y>0 && y<qHeight        = Just $ floor ((x-(bWidth/2))/pWidth)
+          | x<(-(bWidth/2)) && x>(-qWidth-(bWidth/2)) && y>0 && y<qHeight    = Just $ 5 - floor (abs(x+(bWidth/2))/pWidth)
+          | x<(-(bWidth/2)) && x>(-qWidth-(bWidth/2)) && y>(-qHeight) && y<0 = Just $ floor (abs(x+(bWidth/2))/pWidth)
+          | x>(bWidth/2) && x<(qWidth+(bWidth/2)) && y>(-qHeight) && y<0     = Just $ 5 - floor ((x-(bWidth/2))/pWidth)
+          | otherwise                                                        = Nothing
 
         yIdx :: (Float, Float) -> Maybe Int
         yIdx (_,y)
@@ -83,14 +83,14 @@ transformGame :: Event -> Game -> Game
 transformGame (EventKey (MouseButton LeftButton) Up _ mousePos) game = case chipIdx mousePos of
       Nothing -> game
       Just (qIdx, tIdx, yIdx) -> do
-        let (Game oldBoard player_ gameState) = game
-        
+        let (Game oldBoard dice_ player_ gameState) = game
+
         case gameState of
           (GameOver winner) -> game
           Running           -> do
               let (bar, quads) = resetAllFocus oldBoard
               let newBoard = updateAt qIdx (updateTrack tIdx) quads
-              Game (bar, newBoard) player_ gameState
+              Game (bar, newBoard) dice_ player_ gameState
           where
               updateTrack :: Int -> Quad -> Quad
               updateTrack idx tracks = updateAt idx (updatePawn yIdx) tracks
@@ -100,7 +100,7 @@ transformGame (EventKey (MouseButton LeftButton) Up _ mousePos) game = case chip
               updatePawn idx (Just pawns) = Just $ updateAt idx updateChip pawns
 
               updateChip :: Pawn -> Pawn
-              updateChip pawn = case (player game, pawn) of 
+              updateChip pawn = case (player game, pawn) of
                   (PlayerRed, PawnRed _ _)      -> pawn { isFocused=True }
                   (PlayerWhite, PawnWhite _ _)  -> pawn { isFocused=True }
                   (_, _)                        -> pawn
@@ -109,32 +109,32 @@ transformGame (EventKey (MouseButton LeftButton) Up _ mousePos) game = case chip
 transformGame (EventKey (MouseButton RightButton) Up _ mousePos) game = case chipIdx mousePos of
       Nothing              -> game
       Just (qIdx, tIdx, _) -> do
-        let (Game oldBoard player_ state_) = game
+        let (Game oldBoard dice_ player_ state_) = game
         let (_, quads) = oldBoard
 
         let focusedChip = getFocusedChip quads
-        
+
         case focusedChip of
-          Nothing -> Game oldBoard player_ state_
+          Nothing -> Game oldBoard dice_ player_ state_
           Just (fromIdx, fChip) -> do
             let toIdx = newIdx fChip
-            
+
             {-- Check movement board, fromIdx, toIdx, chip --}
             let canMove = checkMove oldBoard fromIdx toIdx fChip
-            let (isBlot, bBoard) = checkBlot oldBoard toIdx fChip 
-            
+            let (isBlot, bBoard) = checkBlot oldBoard toIdx fChip
+
             case canMove of
-              False -> Game oldBoard player_ state_
+              False -> Game oldBoard dice_ player_ state_
               _     -> do
                 case player_ of
-                   PlayerWhite -> Game (resetAllFocus newBoard) PlayerRed state_
-                   PlayerRed   -> Game (resetAllFocus newBoard) PlayerWhite state_
-               where 
-                 newBoard = if isBlot 
-                            then pickPlacePawn bBoard (fromIdx, toIdx) fChip 
+                   PlayerWhite -> Game (resetAllFocus newBoard) dice_ PlayerRed state_
+                   PlayerRed   -> Game (resetAllFocus newBoard) dice_ PlayerWhite state_
+               where
+                 newBoard = if isBlot
+                            then pickPlacePawn bBoard (fromIdx, toIdx) fChip
                             else pickPlacePawn oldBoard (fromIdx, toIdx) fChip
-            
-            
+
+
           where
               newIdx :: Pawn -> Int
               newIdx pawn = case pawn of

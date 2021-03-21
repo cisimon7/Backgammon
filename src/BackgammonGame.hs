@@ -4,6 +4,7 @@ import Components
 
 backgammonGame :: Game
 backgammonGame = Game { board  = initBoard
+                      , dice   = [Die]
                       , player = PlayerWhite
                       , state  = Running      }
                       

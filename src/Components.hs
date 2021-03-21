@@ -2,6 +2,7 @@ module Components where
 
 
 data Game = Game { board  :: Board
+                 , dice   :: [Die]
                  , player :: Player
                  , state  :: State
                  } deriving (Eq, Show)
@@ -24,10 +25,16 @@ data Pawn =    PawnRed { pt::Int, isFocused::Bool }
            | PawnWhite { pt::Int, isFocused::Bool }
   deriving (Eq, Show)
 
+data Die = Die
+  deriving (Eq, Show)
+
 -- Game Window Dimensions
 screenWidth, screenHeight :: Int
 screenWidth  = 1000
 screenHeight = 700
+
+expandWidth :: Float
+expandWidth = 20
 
 -- Checker Radius
 pawnRadius :: Float
@@ -45,6 +52,6 @@ qHeight = fromIntegral screenHeight*0.5
 
 -- Bar Dimensions
 bWidth, bHeight :: Float
-bWidth = pawnRadius
+bWidth = pawnRadius*2
 bHeight = fromIntegral screenHeight
 

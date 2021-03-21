@@ -12,14 +12,54 @@ import Graphics.Gloss
 s :: Float
 s = 0.85
 
+
+drawDice :: Player -> Int -> Picture
+drawDice _player id = wCubesRendered <> rCubesRendered
+  where
+      wCubesRendered = renderCubes _player (PawnWhite 0 False)
+      rCubesRendered = renderCubes _player (PawnRed 0 False)
+
+      renderCubes :: Player -> Pawn -> Picture
+      renderCubes player_ testPawn = case (player_, testPawn) of
+        (PlayerWhite, PawnWhite _ _) -> renderFocusedCubes testPawn
+        (PlayerRed, PawnRed _ _)     -> renderFocusedCubes testPawn
+        _                            -> justCubes testPawn
+
+      renderFocusedCubes :: Pawn -> Picture
+      renderFocusedCubes testPawn = case testPawn of
+        (PawnWhite _ _) -> translate (3*cSize) 0 (fCube white) <> translate (5*cSize) 0 (fCube white)
+        (PawnRed _ _)   -> translate (-3*cSize) 0 (fCube redChipColor) <> translate (-5*cSize) 0 (fCube redChipColor)
+
+      justCubes :: Pawn -> Picture
+      justCubes testPawn = case testPawn of
+        (PawnWhite _ _) -> translate (3*cSize) 0 (cube white) <> translate (5*cSize) 0 (cube white)
+        (PawnRed _ _)   -> translate (-3*cSize) 0 (cube redChipColor) <> translate (-5*cSize) 0 (cube redChipColor)
+
+      cube :: Color -> Picture
+      cube color_ = color color_ (rectangleSolid cSize cSize) 
+                    <> translate (-cSize/5.3) (-cSize/4.3) (scale 0.1 0.1 (text (show id)))
+
+      fCube :: Color -> Picture
+      fCube color_ = scale 1.5 1.5 $ color focusColor (rectangleSolid (1.3*cSize) (1.3*cSize))
+                     <> color color_ (rectangleSolid cSize cSize) 
+                     <> translate (-cSize/5.3) (-cSize/4.3) (scale 0.1 0.1 (text (show id)))
+
+      cSize = 0.7*pawnRadius
+
+
 drawPawn :: Pawn -> Picture
 drawPawn pawn = case pawn of
   (PawnRed _ focus)   -> redPawn focus
   (PawnWhite _ focus) -> whitePawn focus
 
-  where redPawn   focus = translate pawnRadius (size*pawnRadius) $ scale size size $ pawnShape redChipColor pawnRadius focus
+  where redPawn focus  = translate pawnRadius (size*pawnRadius)
+                         $ scale size size
+                         $ pawnShape redChipColor pawnRadius focus
             where size = s * focusSize focus
-        whitePawn focus = translate pawnRadius (size*pawnRadius) $ scale size size $ pawnShape whiteChipColor pawnRadius focus
+
+        whitePawn focus = translate pawnRadius (size*pawnRadius)
+                          $ scale size size
+                          $ pawnShape whiteChipColor pawnRadius focus
             where size = s * focusSize focus
 
         pawnShape color_ rad focus
@@ -50,17 +90,38 @@ drawTrack points trackColor = case points of
 
 
 drawBar :: Bar -> Picture
-drawBar bar = case ordBar of 
-    Nothing -> blank
-    (Just pawns) -> pictures 
-                    $ map (\chip -> scale 0.5 0.5 
-                                    $ translate (-0.5*bWidth) (2*pawnRadius*fromIntegral 
-                                    (pt chip))
-                                    (drawPawn chip)) 
-                          pawns 
-    
-    where 
-      ordBar = organiseTrack bar
+drawBar Nothing      = blank
+drawBar (Just pawns) = pictures whitePictures <> pictures redPictures
+      where
+        whitePictures = map bChipRender ordWhites
+        redPictures = map bChipRender ordReds
+
+        bChipRender :: Pawn -> Picture
+        bChipRender chip = scale 0.7 0.7
+                           $ translate (-0.5*bWidth) h (drawPawn chip)
+                 where h = case chip of
+                             (PawnWhite _ _) -> -(fromIntegral screenHeight) - gap + 2*pawnRadius*fromIntegral (pt chip)
+                             (PawnRed _ _)   ->  trace (show gap) (fromIntegral screenHeight) + gap - 1.5*pawnRadius - 2*pawnRadius*fromIntegral (pt chip)
+                       gap = (-qHeight/2)-pawnRadius
+
+        (whiteChips, redChips) = groupChips pawns
+        (Just ordWhites, Just ordReds) = (organiseTrack (Just whiteChips), organiseTrack (Just redChips))
+
+        groupChips :: [Pawn] -> ([Pawn], [Pawn])
+        groupChips pawns_ = (whites, reds)
+          where
+              whites = filter whiteFilter pawns_
+              reds = filter redFilter pawns_
+
+        whiteFilter :: Pawn -> Bool
+        whiteFilter pawn = case pawn of
+          (PawnWhite _ _) -> True
+          _               -> False
+
+        redFilter :: Pawn -> Bool
+        redFilter pawn = case pawn of
+          (PawnRed _ _) -> True
+          _             -> False
 
 
 drawQuad :: [Track] -> Picture
@@ -76,11 +137,11 @@ drawQuad points
 
 
 drawBoard :: Game -> Picture
-drawBoard (Game oldBoard _ _) = pictures boardFrame
+drawBoard (Game oldBoard _ player_ _) = pictures boardFrame
 
   where (bar, quads) = setPt oldBoard
 
-        boardFrame = drawBar bar : allQuads
+        boardFrame = allQuads ++ [drawDice player_ 6, drawBar bar]
         allQuads = zipWith translateQuad [ q1, q2, q3, q4 ]
                                          [ (qWidth+bWidth,0), (0,0), (0, qHeight), (qWidth+bWidth, qHeight) ]
 
