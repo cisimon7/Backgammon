@@ -1,8 +1,8 @@
 module BackgammonGame where
 
 import Components
-import System.Random (randomRs, getStdGen)
 import GHC.IO.Unsafe (unsafePerformIO)
+import System.Random (randomRs, getStdGen)
 
 backgammonGame :: Game
 backgammonGame = Game { board  = initBoard
@@ -13,7 +13,7 @@ backgammonGame = Game { board  = initBoard
                       
   where initBoard = (Nothing, allQuads) :: Board
 
-        {- SETUP GAME -}
+        {- SETUP INITIAL GAME ARRANGEMENT -}
         allQuads = [ q1, q2, q3, q4 ] :: [[Track]]
 
         q1 = [ set1, n, n, n, n, set2 ]

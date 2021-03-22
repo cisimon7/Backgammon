@@ -1,8 +1,5 @@
 module Components where
 
-import System.Random (StdGen)
-
-
 
 type Dices = ((Die,Die), (Die,Die))
 
