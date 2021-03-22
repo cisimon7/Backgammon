@@ -22,4 +22,7 @@ oddTrackColor :: Color
 oddTrackColor = makeColor (171/255) (178/255) (185/255) (255/255)
 
 focusColor :: Color
-focusColor = makeColor (93/255) (173/255) (226/255) (255/255)
+focusColor = makeColor (252/255) (255/255) (0/255) (255/255)
+
+fTrackColor :: Color
+fTrackColor = makeColor (44/255) (62/255) (80/255) (255/255)

@@ -1,12 +1,15 @@
 module BackgammonGame where
 
 import Components
+import System.Random (randomRs, getStdGen)
+import GHC.IO.Unsafe (unsafePerformIO)
 
 backgammonGame :: Game
 backgammonGame = Game { board  = initBoard
-                      , dice   = [Die]
+                      , dice   = ( (Die 1, Die 5), (Die 2, Die 4) )
                       , player = PlayerWhite
-                      , state  = Running      }
+                      , state  = Running      
+                      , dieValues = randomRs (1,5) (unsafePerformIO getStdGen) }
                       
   where initBoard = (Nothing, allQuads) :: Board
 
@@ -55,5 +58,5 @@ backgammonGame = Game { board  = initBoard
                     , PawnRed   3 False
                     , PawnRed   4 False ]
 
-        set8 = Just [ PawnRed   0 False
-                    , PawnRed   1 False ]
+        set8 = Just [ PawnWhite 0 False
+                    , PawnWhite 1 False ]

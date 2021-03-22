@@ -1,10 +1,16 @@
 module Components where
 
+import System.Random (StdGen)
+
+
+
+type Dices = ((Die,Die), (Die,Die))
 
 data Game = Game { board  :: Board
-                 , dice   :: [Die]
+                 , dice   :: Dices
                  , player :: Player
                  , state  :: State
+                 , dieValues :: [Int]
                  } deriving (Eq, Show)
 
 data Player = PlayerRed | PlayerWhite
@@ -25,7 +31,7 @@ data Pawn =    PawnRed { pt::Int, isFocused::Bool }
            | PawnWhite { pt::Int, isFocused::Bool }
   deriving (Eq, Show)
 
-data Die = Die
+newtype Die = Die { x::Int }
   deriving (Eq, Show)
 
 -- Game Window Dimensions
@@ -39,6 +45,9 @@ expandWidth = 20
 -- Checker Radius
 pawnRadius :: Float
 pawnRadius = 35
+
+s :: Float
+s = 0.85
 
 -- Point Dimensions
 pWidth, pHeight :: Float
