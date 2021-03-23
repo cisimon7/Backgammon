@@ -27,13 +27,14 @@ source-repository head
 
 library
   exposed-modules:
-      Components
+      BackgammonGame
+    , UIElements
+    , Components
     , Pictures
-    , BackgammonGame
+    , TimeFun
     , SideFun
     , Effects
     , Rules
-    , UIElements
   other-modules:
       Paths_Backgammon
   hs-source-dirs:

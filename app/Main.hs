@@ -1,5 +1,6 @@
 module Main where
 
+import TimeFun
 import Effects
 import Pictures
 import UIElements
@@ -15,4 +16,4 @@ main :: IO ()
 main = play window backgroundColor 30 backgammonGame
                                       drawBoard 
                                       transformGame 
-                                      (const id)
+                                      (\time game -> checkWinner game)

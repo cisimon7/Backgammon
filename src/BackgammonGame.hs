@@ -1,16 +1,17 @@
 module BackgammonGame where
 
+
 import Components
 import GHC.IO.Unsafe (unsafePerformIO)
 import System.Random (randomRs, getStdGen)
 
 backgammonGame :: Game
-backgammonGame = Game { board  = initBoard
-                      , dice   = ( (Die 1, Die 5), (Die 2, Die 4) )
-                      , player = PlayerWhite
-                      , state  = Running      
-                      , dieValues = randomRs (1,5) (unsafePerformIO getStdGen) }
-                      
+backgammonGame = Game { board_      = initBoard -- bearingOffBoard
+                      , dice_       = ( (Die 1, Die 5), (Die 2, Die 4) )
+                      , player_     = PlayerWhite "White Player"
+                      , state_      = Running 
+                      , dieValues_  = randomRs (1,5) (unsafePerformIO getStdGen) }
+
   where initBoard = (Nothing, allQuads) :: Board
 
         {- SETUP INITIAL GAME ARRANGEMENT -}
@@ -60,3 +61,13 @@ backgammonGame = Game { board  = initBoard
 
         set8 = Just [ PawnWhite 0 False
                     , PawnWhite 1 False ]
+        
+        {- Used to test bearing off implementation -}          
+        bearingOffBoard = (Nothing, bearQuads) :: Board
+        
+        bearQuads = [ b1, b2, b3, b4 ] :: [[Track]]
+        
+        b1 = [set5, set5, set5, n]
+        b2 = []
+        b3 = []
+        b4 = []

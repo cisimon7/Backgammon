@@ -26,3 +26,10 @@ focusColor = makeColor (252/255) (255/255) (0/255) (255/255)
 
 fTrackColor :: Color
 fTrackColor = makeColor (44/255) (62/255) (80/255) (255/255)
+
+menuColor :: Color
+menuColor = makeColor (163/255) (228/255) (215/255) (255/255)
+
+textColor :: Color
+textColor = makeColor (52/255) (73/255) (94/255) (255/255)
+

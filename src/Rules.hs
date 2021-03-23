@@ -18,39 +18,20 @@ import Debug.Trace
 --      setBChips = undefined
 
 
-{- Checks direction of Movement for a given pawn -}
-{- Check if pawn can move from one track id to the next track id: openTrackTest -}
-getAllowedMoves :: Board -> Die -> Die -> Pawn -> Bool
-getAllowedMoves board_ fTo dTo pawn = case pawn of
-    (PawnRed _ _)   -> (x dTo) > (x fTo) && (trackIsOpen pawn (x dTo))
-    (PawnWhite _ _) -> (x fTo) > (x dTo) && (trackIsOpen pawn (x fTo))
-    where
-        trackIsOpen :: Pawn -> Int -> Bool
-        trackIsOpen chip tIdx_ = do
-            let (qIdx, tIdx) = getTrackId tIdx_
-            let track = snd board_ !! qIdx !! tIdx
-            let (whiteCount, redCount) = trackContent track
-    
-            case chip of
-                (PawnWhite _ _) -> redCount<=1
-                (PawnRed _ _)   -> whiteCount<=1
+--{- Checks direction of Movement for a given pawn -}
+--{- Check if pawn can move from one track id to the next track id: openTrackTest -}
+--getAllowedMoves :: Board -> Die -> Die -> Pawn -> Bool
+--getAllowedMoves board fTo dTo pawn = case pawn of
+--    (PawnRed _ _)   -> (val_ dTo > val_ fTo) && (trackIsOpen pawn (val_ dTo))
+--    (PawnWhite _ _) -> (val_ fTo > val_ dTo) && (trackIsOpen pawn (val_ fTo))
+--    where
+--        trackIsOpen :: Pawn -> Int -> Bool
+--        trackIsOpen chip tIdx_ = do
+--            let (qIdx, tIdx) = getTrackId tIdx_
+--            let track = snd board !! qIdx !! tIdx
+--            let (whiteCount, redCount) = trackContent track
+--
+--            case chip of
+--                (PawnWhite _ _) -> redCount<=1
+--                (PawnRed _ _)   -> whiteCount<=1
 
-
-{- Takes current board, the values of the two dice and a selected pawn
-   and returns the possible trackIds to move to -}
-goodMoves :: Board -> (Die, Die) -> [Int]
-goodMoves (bar, quads) (Die d1, Die d2) = do
-    case getFocusedChip quads of
-        Nothing           -> []
-        Just (fId, fChip) -> do
-            case fChip of
-                (PawnWhite _ _) -> filter 
-                                   (\to -> to <= 23 && to>=0 && checkMove (bar, quads) fId to fChip) 
-                                   [fId-d1, fId-d2, fId-d1-d2]
-                                   
-                (PawnRed _ _)   -> filter 
-                                   (\to -> to <= 23 && to>=0 && checkMove (bar, quads) fId to fChip) 
-                                   [d1+fId, d2+fId, d1+d2+fId]
-
-getPips :: Int -> Int -> [Int]
-getPips d1 d2 = [d1, d2, d1+d2]
